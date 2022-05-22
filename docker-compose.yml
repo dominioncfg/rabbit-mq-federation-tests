@@ -1,0 +1,15 @@
+version: "3.2"
+services:
+  rabbitm-datacenter1:
+    image: rabbitmq:3-management-alpine
+    container_name: 'federation-datacenter-1'
+    ports:
+        - 5672:5672
+        - 15672:15672
+
+  rabbitm-datacenter2:
+    image: rabbitmq:3-management-alpine
+    container_name: 'federation-datacenter-2'
+    ports:
+        - 5674:5672
+        - 15674:15672

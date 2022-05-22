@@ -1,0 +1,2 @@
+Run Rabbit MQ
+	1. docker-compose -p RabbitMq.Federation.Tests up -d
