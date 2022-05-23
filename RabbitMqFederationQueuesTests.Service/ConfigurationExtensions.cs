@@ -7,34 +7,41 @@ namespace RabbitMqFederationQueuesTests.Service;
 
 public static class ConfigurationExtensions
 {
-    public static void AddCustomMassTransit(this IServiceCollection services)
+    public static void AddCustomMassTransit(this IServiceCollection services, IConfiguration configuration)
     {
+        var rabbitMqConfig = new RabbitMqConfiguration();
+        configuration.GetSection(RabbitMqConfiguration.SectionName).Bind(rabbitMqConfig);
+        services.Configure<RabbitMqConfiguration>(configuration.GetSection(RabbitMqConfiguration.SectionName));
+
         services.AddMassTransit(busConfigurator =>
         {
             var entryAssembly = Assembly.GetEntryAssembly();
-            
+
             busConfigurator.SetKebabCaseEndpointNameFormatter();
             busConfigurator.AddConsumers(entryAssembly);
             busConfigurator.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host("localhost", "/", h =>
-                {
-                    h.Username("guest");
-                    h.Password("guest");
-                });
+                //cfg.DeployTopologyOnly = true;
+                cfg.Host(rabbitMqConfig.Host, rabbitMqConfig.Port, "/", h =>
+                 {
+                     h.Username(rabbitMqConfig.User);
+                     h.Password(rabbitMqConfig.Password);
+                 });
 
-                cfg.ReceiveEndpoint(ConfigurationConstants.WorkerQueueName, e =>
+                var queueName = ConfigurationConstants.GetInboxExchangeName(rabbitMqConfig.DatacenterId);
+                cfg.ReceiveEndpoint(queueName, e =>
                 {
                     e.ConfigureConsumer<CreateUserCommandConsumer>(context);
                 });
             });
 
-            ConfigureSendCommands();
+            ConfigureSendCommands(rabbitMqConfig);
         });
     }
 
-    private static void ConfigureSendCommands()
+    private static void ConfigureSendCommands(RabbitMqConfiguration rabbitMqConfig)
     {
-        EndpointConvention.Map<CreateUserCommand>(new Uri($"queue:{ConfigurationConstants.WorkerQueueName}"));
-    }  
+        EndpointConvention.Map<CreateUserCommand>(new Uri($"exchange:{ConfigurationConstants.GetOutboundExchangeName(rabbitMqConfig.DatacenterId)}"));
+    }
+
 }

@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Options;
 
 namespace RabbitMqFederationQueuesTests.Service;
 
@@ -6,16 +7,29 @@ public class CommandsPublisherBackgroundService : BackgroundService
 {
     private readonly IBus _bus;
     private readonly ILogger<CommandsPublisherBackgroundService> _logger;
+    private readonly RabbitMqConfiguration _appConfig;
 
-    public CommandsPublisherBackgroundService(IBus bus, ILogger<CommandsPublisherBackgroundService> logger)
+    public CommandsPublisherBackgroundService(IBus bus, ILogger<CommandsPublisherBackgroundService> logger, IOptions<RabbitMqConfiguration> appConfig)
     {
+        
         _bus = bus;
         _logger = logger;
+        _appConfig = appConfig.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await SendMessagesUnlessStopped(cancellationToken);
+        await WaitUntilRabbitHasStarted();
+
+        if(_appConfig.SendSampleMessage)
+        {
+            await SendMessagesUnlessStopped(cancellationToken);
+        }        
+    }
+
+    private static async Task WaitUntilRabbitHasStarted()
+    {
+        await Task.Delay(5000);
     }
 
     private async Task SendMessagesUnlessStopped(CancellationToken cancellationToken)
@@ -52,7 +66,7 @@ public class CommandsPublisherBackgroundService : BackgroundService
         {
             Id = Guid.NewGuid(),
             FirstName = $"FN {entrophy}",
-            LastName = $"LN {entrophy}"
+            LastName = $"LN {entrophy} from Datacenter {_appConfig.DatacenterId}",
         };
 
         await _bus.Send(message, cancellationToken);

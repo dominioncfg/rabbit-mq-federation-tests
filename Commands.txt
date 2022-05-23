@@ -1,2 +1,9 @@
-Run Rabbit MQ
+Run Rabbit MQ:
 	1. docker-compose -p RabbitMq.Federation.Tests up -d
+	2. Docker exec to container 2:
+	3. Configure Federation with this script:
+	3.1 Create the Upstream
+	rabbitmqctl set_parameter federation-upstream datacenter1 \
+'{"uri":"amqp://rabbitmq-datacenter1","expires":3600000}'
+	3.2 Create the Policy
+rabbitmqctl set_policy --apply-to exchanges outbox-federation "outbound$" '{"federation-upstream-set":"all"}'

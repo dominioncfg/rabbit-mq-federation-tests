@@ -1,10 +1,23 @@
 ﻿{
   "profiles": {
-    "RabbitMqFederationQueuesTests.Service": {
+    "RabbitMqFederationQueuesTests.Service.DataCenter1": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development",
+        "RabbitQm__Port": "5672",
+        "RabbitQm__DatacenterId": "datacenter1",
+        "SendSampleMessage": "true"
+      }
+    },
+    "RabbitMqFederationQueuesTests.Service.DataCenter2": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "RabbitQm__Port": "5674",
+        "RabbitQm__DatacenterId": "datacenter2",
+        "RabbitQm__SendSampleMessage": "false"
       }
     }
   }
